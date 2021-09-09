@@ -1,4 +1,4 @@
-struct POMCPOWTree{B,A,O,RB}
+struct POMCPOWTree{B,A,O,RB,TB}
     # action nodes
     n::Vector{Int}
     v::Vector{Float64}
@@ -16,8 +16,10 @@ struct POMCPOWTree{B,A,O,RB}
 
     # root
     root_belief::RB
+    true_belief::TB
+    w::Vector{Float64}
 
-    function POMCPOWTree{B,A,O,RB}(root_belief, sz::Int=1000) where{B,A,O,RB}
+    function POMCPOWTree{B,A,O,RB,TB}(root_belief, sz::Int=1000, true_belief) where{B,A,O,RB,TB}
         sz = min(sz, 100_000)
         return new(
             sizehint!(Int[], sz),
@@ -33,7 +35,9 @@ struct POMCPOWTree{B,A,O,RB}
             Dict{Tuple{Int,A}, Int}(),
             sizehint!(Array{O}(undef, 1), sz),
 
-            root_belief
+            root_belief,
+            true_belief,
+            sizehint!(Int[], sz)
         )
     end
 end

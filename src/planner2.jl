@@ -24,10 +24,11 @@ end
 
 Random.seed!(p::POMCPOWPlanner, seed) = Random.seed!(p.solver.rng, seed)
 
-function action_info(pomcp::POMCPOWPlanner{P,NBU}, b; tree_in_info=false) where {P,NBU}
+function action_info(pomcp::POMCPOWPlanner{P,NBU}, b; tree_in_info=false,
+                    true_b=nothing) where {P,NBU}
     A = actiontype(P)
     info = Dict{Symbol, Any}()
-    tree = make_tree(pomcp, b)
+    tree = make_tree(pomcp, b, true_b)
     pomcp.tree = tree
     local a::A
     try
@@ -54,12 +55,12 @@ function POMDPPolicies.actionvalues(p::POMCPOWPlanner, b)
     return values
 end
 
-function make_tree(p::POMCPOWPlanner{P, NBU}, b) where {P, NBU}
+function make_tree(p::POMCPOWPlanner{P, NBU}, b, true_b) where {P, NBU}
     S = statetype(P)
     A = actiontype(P)
     O = obstype(P)
     B = belief_type(NBU,P)
-    return POMCPOWTree{B, A, O, typeof(b)}(b, 2*min(100_000, p.solver.tree_queries))
+    return POMCPOWTree{B, A, O, typeof(b), typeof(true_b)}(b, 2*min(100_000, p.solver.tree_queries), true_b)
     # return POMCPOWTree{B, A, O, typeof(b)}(b, 2*p.solver.tree_queries)
 end
 
