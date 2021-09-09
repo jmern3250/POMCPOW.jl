@@ -93,9 +93,17 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d)
     tree.n[best_node] += 1
     tree.total_n[h] += 1
     if tree.v[best_node] != -Inf
-        tree.v[best_node] += (R-tree.v[best_node])/tree.n[best_node]
+        if h == 1 && tree.true_belief != nothing
+            w = importance_weight(s, tree.root_belief, tree.true_belief)
+            tree.w[best_node] += w
+            tree.v[best_node] += w*(R-tree.v[best_node])/tree.w[best_node]
+        else
+            tree.v[best_node] += (R-tree.v[best_node])/tree.n[best_node]
+        end
     end
-
     return R
 end
 
+function importance_weight(s, rb, tb)
+    error("Not Implemented for state type $(typeof(s)), root belief type $(typeof(rb)), true belief type $(typeof(tb))")
+end

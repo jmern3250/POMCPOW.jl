@@ -19,7 +19,7 @@ struct POMCPOWTree{B,A,O,RB,TB}
     true_belief::TB
     w::Vector{Float64}
 
-    function POMCPOWTree{B,A,O,RB,TB}(root_belief, sz::Int=1000, true_belief) where{B,A,O,RB,TB}
+    function POMCPOWTree{B,A,O,RB,TB}(root_belief, sz::Int=1000, true_belief=nothing) where{B,A,O,RB,TB}
         sz = min(sz, 100_000)
         return new(
             sizehint!(Int[], sz),
@@ -54,6 +54,9 @@ end
     end
     push!(tree.tried[h], anode)
     tree.total_n[h] += n
+    if h == 1
+        push!(tree.w, 0.0)
+    end    
     return anode
 end
 
