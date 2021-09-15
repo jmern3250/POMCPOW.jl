@@ -18,7 +18,7 @@ N=1000
 up = BootstrapFilter(pomdp, N)
 b0 = LDNormalStateDist(s0.y, 5.0)
 
-function state_weight(d::LDNormalStateDist, s::LightDark1DState)
+function POMCPOW.state_weight(d::LDNormalStateDist, s::LightDark1DState)
     dist = POMDPModels.Normal(d.mean, d.std)
     return pdf(dist, s.y)
 end

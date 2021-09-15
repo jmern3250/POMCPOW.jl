@@ -2,6 +2,7 @@ struct POMCPOWTree{B,A,O,RB,S}
     # action nodes
     n::Vector{Int}
     v::Vector{Float64}
+    w::Vector{Float64} # Sample weights for IS
     generated::Vector{Vector{Pair{O,Int}}}
     a_child_lookup::Dict{Tuple{Int,O}, Int} # may not be maintained based on solver params
     a_labels::Vector{A}
@@ -25,6 +26,7 @@ struct POMCPOWTree{B,A,O,RB,S}
         return new(
             sizehint!(Int[], sz),
             sizehint!(Int[], sz),
+            sizehint!(Int[], sz),
             sizehint!(Vector{Pair{O,Int}}[], sz),
             Dict{Tuple{Int,O}, Int}(),
             sizehint!(A[], sz),
@@ -44,10 +46,12 @@ struct POMCPOWTree{B,A,O,RB,S}
     end
 end
 
-@inline function push_anode!(tree::POMCPOWTree{B,A,O}, h::Int, a::A, n::Int=0, v::Float64=0.0, update_lookup=true) where {B,A,O}
+@inline function push_anode!(tree::POMCPOWTree{B,A,O}, h::Int, a::A, n::Int=0,
+                            v::Float64=0.0, w::Float64=0.0, update_lookup=true) where {B,A,O}
     anode = length(tree.n) + 1
     push!(tree.n, n)
     push!(tree.v, v)
+    push!(tree.w, w)
     push!(tree.generated, Pair{O,Int}[])
     push!(tree.a_labels, a)
     push!(tree.n_a_children, 0)
@@ -83,10 +87,14 @@ n_children(h::POWTreeObsNode) = length(h.tree.tried[h.node])
 
 function is_sample_root(tree::POMCPOWTree)
     μ = mean(tree.root_returns)
-    wq = abs.(tree.root_returns .- μ).*tree.root_probs
-    wv = ProbabilityWeights(wq)
+    p_total = sum(tree.root_probs)
+    p_norm = tree.root_probs./p_total
+    wq = abs.(tree.root_returns .- μ).*p_norm
+    w_total = sum(wq)
+    w_norm = wq./w_total
+    wv = ProbabilityWeights(w_norm)
     idx = sample([1:length(tree.root_samples);], wv)
     sample = tree.root_samples[idx]
-    wp = tree.root_probs[idx]/wq[idx]
+    wp = p_norm[idx]/w_norm[idx]
     return (sample[1], sample[2], wp)
 end

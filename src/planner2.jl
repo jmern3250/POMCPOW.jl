@@ -63,6 +63,9 @@ function make_tree(p::POMCPOWPlanner{P, NBU}, b) where {P, NBU}
     # return POMCPOWTree{B, A, O, typeof(b)}(b, 2*p.solver.tree_queries)
 end
 
+function state_weight(d, s)
+    return 1.0
+end
 
 function search(pomcp::POMCPOWPlanner, tree::POMCPOWTree, info::Dict{Symbol,Any}=Dict{Symbol,Any}())
     all_terminal = true
@@ -71,7 +74,7 @@ function search(pomcp::POMCPOWPlanner, tree::POMCPOWTree, info::Dict{Symbol,Any}
     start_us = CPUtime_us()
     while i < pomcp.solver.tree_queries
         i += 1
-        if length(tree.root_states) <= 100
+        if length(tree.root_samples) <= 100
             s = rand(pomcp.solver.rng, tree.root_belief)
             seed = i
             sp = state_weight(tree.root_belief, s)
@@ -82,9 +85,10 @@ function search(pomcp::POMCPOWPlanner, tree::POMCPOWTree, info::Dict{Symbol,Any}
         else
             s, seed, wp = is_sample_root(tree)
         end
+        Random.seed!(pomcp.solver.rng, seed)
         if !POMDPs.isterminal(pomcp.problem, s)
             max_depth = min(pomcp.solver.max_depth, ceil(Int, log(pomcp.solver.eps)/log(discount(pomcp.problem))))
-            simulate(pomcp, POWTreeObsNode(tree, 1), s, max_depth)
+            simulate(pomcp, POWTreeObsNode(tree, 1), s, wp, max_depth)
             all_terminal = false
         end
         if CPUtime_us() - start_us >= pomcp.solver.max_time*1e6

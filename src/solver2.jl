@@ -1,4 +1,5 @@
-function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d) where {B,S,A,O}
+function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S,
+                    w::Float64, d) where {B,S,A,O}
 
     tree = h_node.tree
     h = h_node.node
@@ -21,6 +22,7 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d)
                 push_anode!(tree, h, a,
                             init_N(pomcp.init_N, pomcp.problem, POWTreeObsNode(tree, h), a),
                             init_V(pomcp.init_V, pomcp.problem, POWTreeObsNode(tree, h), a),
+                            w,
                             sol.check_repeat_act)
             end
         end
@@ -36,6 +38,7 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d)
                 push_anode!(tree, h, a,
                             init_N(pomcp.init_N, pomcp.problem, POWTreeObsNode(tree, h), a),
                             init_V(pomcp.init_V, pomcp.problem, POWTreeObsNode(tree, h), a),
+                            w,
                             false)
             end
         end
@@ -87,9 +90,10 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d)
         push_weighted!(tree.sr_beliefs[hao], pomcp.node_sr_belief_updater, s, sp, r)
         sp, r = rand(sol.rng, tree.sr_beliefs[hao])
 
-        R = r + POMDPs.discount(pomcp.problem)*simulate(pomcp, POWTreeObsNode(tree, hao), sp, d-1)
+        R = r + POMDPs.discount(pomcp.problem)*simulate(pomcp, POWTreeObsNode(tree, hao), sp, w, d-1)
     end
 
+    # TODO: HERE!
     tree.n[best_node] += 1
     tree.total_n[h] += 1
     if tree.v[best_node] != -Inf
@@ -98,4 +102,3 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d)
 
     return R
 end
-
