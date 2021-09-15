@@ -86,15 +86,16 @@ end
 n_children(h::POWTreeObsNode) = length(h.tree.tried[h.node])
 
 function is_sample_root(tree::POMCPOWTree)
-    μ = mean(tree.root_returns)
+    # μ = mean(tree.root_returns)
     p_total = sum(tree.root_probs)
     p_norm = tree.root_probs./p_total
-    wq = abs.(tree.root_returns .- μ).*p_norm
+    μ = sum(tree.root_returns.*p_norm)
+    wq = abs.(tree.root_returns .- μ).*p_norm .+ 1e-4
     w_total = sum(wq)
     w_norm = wq./w_total
     wv = ProbabilityWeights(w_norm)
-    idx = sample([1:length(tree.root_samples);], wv)
+    idx = StatsBase.sample([1:length(tree.root_samples);], wv)
     sample = tree.root_samples[idx]
     wp = p_norm[idx]/w_norm[idx]
-    return (sample[1], sample[2], wp)
+    return (idx, sample[1], sample[2], wp)
 end

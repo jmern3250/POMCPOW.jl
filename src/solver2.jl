@@ -3,7 +3,6 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S,
 
     tree = h_node.tree
     h = h_node.node
-
     sol = pomcp.solver
 
     if POMDPs.isterminal(pomcp.problem, s) || d <= 0
@@ -93,11 +92,12 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S,
         R = r + POMDPs.discount(pomcp.problem)*simulate(pomcp, POWTreeObsNode(tree, hao), sp, w, d-1)
     end
 
-    # TODO: HERE!
     tree.n[best_node] += 1
     tree.total_n[h] += 1
     if tree.v[best_node] != -Inf
         tree.v[best_node] += (R-tree.v[best_node])/tree.n[best_node]
+        # tree.w[best_node] += w
+        # tree.v[best_node] += w*(R-tree.v[best_node])/tree.w[best_node]
     end
 
     return R

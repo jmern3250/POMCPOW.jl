@@ -112,6 +112,12 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
+[[DiscreteValueIteration]]
+deps = ["POMDPLinter", "POMDPModelTools", "POMDPPolicies", "POMDPs", "Printf", "SparseArrays"]
+git-tree-sha1 = "7ac002779617a7e1693ccdcc3a534f555b3ea61e"
+uuid = "4b033969-44f6-5439-a48b-c11fa3648068"
+version = "0.4.5"
+
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
@@ -233,6 +239,12 @@ deps = ["CPUTime", "Colors", "D3Trees", "POMDPLinter", "POMDPModelTools", "POMDP
 git-tree-sha1 = "864a39c4136998e421c7be0743b9bcfc770037e5"
 uuid = "e12ccd36-dcad-5f33-8774-9175229e7b33"
 version = "0.4.7"
+
+[[MCVI]]
+deps = ["Distributed", "JSON", "LinearAlgebra", "POMDPLinter", "POMDPs", "ParticleFilters", "Printf", "Random", "Statistics"]
+git-tree-sha1 = "a8307b52f4800808d5bb632ac510afa3d1c55887"
+uuid = "30d33687-f7ed-5b0d-8b26-3dc9b7abd572"
+version = "0.3.2"
 
 [[MacroTools]]
 deps = ["Markdown", "Random"]
@@ -364,6 +376,12 @@ deps = ["Distributed", "Printf"]
 git-tree-sha1 = "afadeba63d90ff223a6a48d2009434ecee2ec9e8"
 uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
 version = "1.7.1"
+
+[[QMDP]]
+deps = ["DiscreteValueIteration", "POMDPLinter", "POMDPModelTools", "POMDPPolicies", "POMDPs", "Random"]
+git-tree-sha1 = "4f5b20454c103900dbd6aa74184c16d311a5063c"
+uuid = "3aa3ecc9-5a5d-57c8-8188-3e47bd8068d2"
+version = "0.1.6"
 
 [[QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]

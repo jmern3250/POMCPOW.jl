@@ -10,6 +10,7 @@ function select_best(crit::MaxUCB, h_node::POWTreeObsNode, rng)
     istied = false
     local tied::Vector{Int}
     ltn = log(tree.total_n[h])
+    found = false
     for node in tree.tried[h]
         n = tree.n[node]
         if n == 0 && ltn <= 0.0
@@ -23,6 +24,7 @@ function select_best(crit::MaxUCB, h_node::POWTreeObsNode, rng)
             best_criterion_val = criterion_value
             best_node = node
             istied = false
+            found = true
         elseif criterion_value == best_criterion_val
             if istied
                 push!(tied, node)

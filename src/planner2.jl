@@ -72,23 +72,30 @@ function search(pomcp::POMCPOWPlanner, tree::POMCPOWTree, info::Dict{Symbol,Any}
     # gc_enable(false)
     i = 0
     start_us = CPUtime_us()
+    # println("Root Belief: $(typeof(tree.root_belief))")
     while i < pomcp.solver.tree_queries
         i += 1
-        if length(tree.root_samples) <= 100
+        if length(tree.root_samples) <= pomcp.solver.max_samples
             s = rand(pomcp.solver.rng, tree.root_belief)
             seed = i
             sp = state_weight(tree.root_belief, s)
             push!(tree.root_samples, (s, seed))
             push!(tree.root_probs, sp)
-            push!(tree.root_returns, 0.0)
+            push!(tree.root_returns, -Inf)
             wp = 1.0
+            idx = i
         else
-            s, seed, wp = is_sample_root(tree)
+            idx, s, seed, wp = is_sample_root(tree)
         end
-        Random.seed!(pomcp.solver.rng, seed)
+        # println("FOO")
+        # Random.seed!(pomcp.solver.rng, seed)
+        # println("BAR")
         if !POMDPs.isterminal(pomcp.problem, s)
             max_depth = min(pomcp.solver.max_depth, ceil(Int, log(pomcp.solver.eps)/log(discount(pomcp.problem))))
-            simulate(pomcp, POWTreeObsNode(tree, 1), s, wp, max_depth)
+            R = simulate(pomcp, POWTreeObsNode(tree, 1), s, wp, max_depth)
+            if R > tree.root_returns[idx]
+                tree.root_returns[idx] = R
+            end
             all_terminal = false
         end
         if CPUtime_us() - start_us >= pomcp.solver.max_time*1e6
@@ -101,7 +108,6 @@ function search(pomcp::POMCPOWPlanner, tree::POMCPOWTree, info::Dict{Symbol,Any}
     if all_terminal
         throw(AllSamplesTerminal(tree.root_belief))
     end
-
     best_node = select_best(pomcp.solver.final_criterion, POWTreeObsNode(tree,1), pomcp.solver.rng)
 
     return tree.a_labels[best_node]

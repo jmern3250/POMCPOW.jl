@@ -139,6 +139,7 @@ Fields:
     criterion                   = MaxUCB(1.0)
     final_criterion             = MaxQ()
     tree_queries::Int           = 1000
+    max_samples::Int            = 100
     max_time::Float64           = Inf
     rng::RNG                    = Random.GLOBAL_RNG
     node_sr_belief_updater      = POWNodeFilter()
