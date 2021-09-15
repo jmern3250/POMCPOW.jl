@@ -11,6 +11,7 @@ using Colors
 using Random
 using Printf
 using POMDPPolicies
+using StatsBase
 
 using BasicPOMCP: convert_estimator
 

@@ -59,7 +59,7 @@ function make_tree(p::POMCPOWPlanner{P, NBU}, b) where {P, NBU}
     A = actiontype(P)
     O = obstype(P)
     B = belief_type(NBU,P)
-    return POMCPOWTree{B, A, O, typeof(b)}(b, 2*min(100_000, p.solver.tree_queries))
+    return POMCPOWTree{B, A, O, typeof(b), S}(b, 2*min(100_000, p.solver.tree_queries))
     # return POMCPOWTree{B, A, O, typeof(b)}(b, 2*p.solver.tree_queries)
 end
 
@@ -71,7 +71,17 @@ function search(pomcp::POMCPOWPlanner, tree::POMCPOWTree, info::Dict{Symbol,Any}
     start_us = CPUtime_us()
     while i < pomcp.solver.tree_queries
         i += 1
-        s = rand(pomcp.solver.rng, tree.root_belief)
+        if length(tree.root_states) <= 100
+            s = rand(pomcp.solver.rng, tree.root_belief)
+            seed = i
+            sp = state_weight(tree.root_belief, s)
+            push!(tree.root_samples, (s, seed))
+            push!(tree.root_probs, sp)
+            push!(tree.root_returns, 0.0)
+            wp = 1.0
+        else
+            s, seed, wp = is_sample_root(tree)
+        end
         if !POMDPs.isterminal(pomcp.problem, s)
             max_depth = min(pomcp.solver.max_depth, ceil(Int, log(pomcp.solver.eps)/log(discount(pomcp.problem))))
             simulate(pomcp, POWTreeObsNode(tree, 1), s, max_depth)

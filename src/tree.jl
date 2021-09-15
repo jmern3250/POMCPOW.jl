@@ -1,4 +1,4 @@
-struct POMCPOWTree{B,A,O,RB}
+struct POMCPOWTree{B,A,O,RB,S}
     # action nodes
     n::Vector{Int}
     v::Vector{Float64}
@@ -16,8 +16,11 @@ struct POMCPOWTree{B,A,O,RB}
 
     # root
     root_belief::RB
+    root_samples::Vector{Tuple{S, Int64}}
+    root_probs::Vector{Float64}
+    root_returns::Vector{Float64}
 
-    function POMCPOWTree{B,A,O,RB}(root_belief, sz::Int=1000) where{B,A,O,RB}
+    function POMCPOWTree{B,A,O,RB,S}(root_belief, sz::Int=1000) where{B,A,O,RB,S}
         sz = min(sz, 100_000)
         return new(
             sizehint!(Int[], sz),
@@ -33,7 +36,10 @@ struct POMCPOWTree{B,A,O,RB}
             Dict{Tuple{Int,A}, Int}(),
             sizehint!(Array{O}(undef, 1), sz),
 
-            root_belief
+            root_belief,
+            sizehint!(Tuple{S, Int}[], sz),
+            sizehint!(Float64[], sz),
+            sizehint!(Float64[], sz)
         )
     end
 end
@@ -74,3 +80,13 @@ function sr_belief(h::POWTreeObsNode)
     end
 end
 n_children(h::POWTreeObsNode) = length(h.tree.tried[h.node])
+
+function is_sample_root(tree::POMCPOWTree)
+    μ = mean(tree.root_returns)
+    wq = abs.(tree.root_returns .- μ).*tree.root_probs
+    wv = ProbabilityWeights(wq)
+    idx = sample([1:length(tree.root_samples);], wv)
+    sample = tree.root_samples[idx]
+    wp = tree.root_probs[idx]/wq[idx]
+    return (sample[1], sample[2], wp)
+end
