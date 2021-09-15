@@ -7,6 +7,7 @@ using POMDPSimulators
 using ParticleFilters
 using POMCPOW
 # using MCVI
+using Random
 using Statistics
 
 using ProfileView
@@ -23,14 +24,19 @@ function POMCPOW.state_weight(d::LDNormalStateDist, s::LightDark1DState)
     return pdf(dist, s.y)
 end
 
-solver = POMCPOWSolver(tree_queries=1000,
-                        max_samples=100,
+function estimate_value(p::LightDark1D, s::LightDark1DState, h, steps)
+    d = clamp(s.y - 1.0, 0.0, Inf)
+    steps = ceil(d/p.step_size)
+    POMDPs.discount(p)^steps*10.0
+end
+
+solver = POMCPOWSolver(tree_queries=100,
+                        max_samples=50,
                         check_repeat_obs=true,
                         check_repeat_act=true,
-                        k_observation=2,
-                        alpha_observation=0.1,
-                        estimate_value,
-                        next_action
+                        estimate_value=estimate_value,
+                        # next_action
+                        rng=MersenneTwister()
                         )
 planner = POMDPs.solve(solver, pomdp)
 
@@ -54,7 +60,7 @@ planner = POMDPs.solve(solver, pomdp)
 #     V += POMDPs.discount(pomdp)^(t-1)*r
 # end
 
-N = 50
+N = 250
 rs = RolloutSimulator()
 V = Float64[]
 println("Starting simulations")

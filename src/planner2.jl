@@ -87,9 +87,7 @@ function search(pomcp::POMCPOWPlanner, tree::POMCPOWTree, info::Dict{Symbol,Any}
         else
             idx, s, seed, wp = is_sample_root(tree)
         end
-        # println("FOO")
-        # Random.seed!(pomcp.solver.rng, seed)
-        # println("BAR")
+        Random.seed!(pomcp.solver.rng, seed)
         if !POMDPs.isterminal(pomcp.problem, s)
             max_depth = min(pomcp.solver.max_depth, ceil(Int, log(pomcp.solver.eps)/log(discount(pomcp.problem))))
             R = simulate(pomcp, POWTreeObsNode(tree, 1), s, wp, max_depth)
