@@ -10,6 +10,7 @@ using POMCPOW
 using Random
 using Statistics
 
+using D3Trees
 using ProfileView
 
 pomdp = LightDark1D()
@@ -30,23 +31,25 @@ function estimate_value(p::LightDark1D, s::LightDark1DState, h, steps)
     POMDPs.discount(p)^steps*10.0
 end
 
-solver = POMCPOWSolver(tree_queries=100,
-                        max_samples=50,
+solver = POMCPOWSolver(tree_queries=1000,
+                        # max_samples=500,
+                        max_time=1.0,
                         check_repeat_obs=true,
                         check_repeat_act=true,
                         estimate_value=estimate_value,
                         # next_action
-                        rng=MersenneTwister()
+                        rng=MersenneTwister(1)
                         )
 planner = POMDPs.solve(solver, pomdp)
 
 # mcvi = MCVISolver(10, 100, 8, 500, 1000, 5000, 50)
 # policy = solve(mcvi, pomdp)
 
-# a, info =
+# a, info = POMCPOW.action_info(planner, b0, tree_in_info=true)
 # @profview POMCPOW.action_info(planner, b0, tree_in_info=true)
 # @profview POMCPOW.action_info(planner, b0, tree_in_info=true)
 # tree = info[:tree]
+# inbrowser(D3Tree(tree, init_expand=2), "firefox")
 
 # V = 0.0
 # println("Entering Simulation...")
@@ -60,8 +63,8 @@ planner = POMDPs.solve(solver, pomdp)
 #     V += POMDPs.discount(pomdp)^(t-1)*r
 # end
 
-N = 250
-rs = RolloutSimulator()
+N = 500
+rs = RolloutSimulator(max_steps=100)
 V = Float64[]
 println("Starting simulations")
 for i in 1:N

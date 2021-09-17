@@ -75,27 +75,27 @@ function search(pomcp::POMCPOWPlanner, tree::POMCPOWTree, info::Dict{Symbol,Any}
     # println("Root Belief: $(typeof(tree.root_belief))")
     while i < pomcp.solver.tree_queries
         i += 1
-        if length(tree.root_samples) <= pomcp.solver.max_samples
-            s = rand(pomcp.solver.rng, tree.root_belief)
-            seed = i
-            sp = state_weight(tree.root_belief, s)
-            push!(tree.root_samples, (s, seed))
-            push!(tree.root_probs, sp)
-            push!(tree.root_returns, -Inf)
-            wp = 1.0
-            idx = i
-        else
-            idx, s, seed, wp = is_sample_root(tree)
-        end
-        Random.seed!(pomcp.solver.rng, seed)
-        if !POMDPs.isterminal(pomcp.problem, s)
+        # if length(tree.root_samples) <= pomcp.solver.max_samples
+        #     s = rand(pomcp.solver.rng, tree.root_belief)
+        #     seed = i
+        #     sp = state_weight(tree.root_belief, s)
+        #     push!(tree.root_samples, (s, seed))
+        #     push!(tree.root_probs, sp)
+        #     push!(tree.root_returns, -Inf)
+        #     wp = 1.0
+        #     idx = i
+        # else
+        #     idx, s, seed, wp = is_sample_root(tree)
+        # end
+        # Random.seed!(pomcp.solver.rng, seed)
+        # if !POMDPs.isterminal(pomcp.problem, s)
             max_depth = min(pomcp.solver.max_depth, ceil(Int, log(pomcp.solver.eps)/log(discount(pomcp.problem))))
-            R = simulate(pomcp, POWTreeObsNode(tree, 1), s, wp, max_depth)
+            R, idx = simulate(pomcp, POWTreeObsNode(tree, 1), nothing, 0.0, max_depth)
             if R > tree.root_returns[idx]
                 tree.root_returns[idx] = R
             end
             all_terminal = false
-        end
+        # end
         if CPUtime_us() - start_us >= pomcp.solver.max_time*1e6
             break
         end

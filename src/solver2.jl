@@ -1,13 +1,12 @@
-function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S,
+function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::Union{Nothing, S},
                     w::Float64, d) where {B,S,A,O}
 
+    if (s!= nothing && POMDPs.isterminal(pomcp.problem, s)) || d <= 0
+        return 0.0, nothing
+    end
     tree = h_node.tree
     h = h_node.node
     sol = pomcp.solver
-
-    if POMDPs.isterminal(pomcp.problem, s) || d <= 0
-        return 0.0
-    end
 
     if sol.enable_action_pw
         total_n = tree.total_n[h]
@@ -46,6 +45,29 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S,
 
     best_node = select_best(pomcp.criterion, h_node, pomcp.solver.rng)
     a = tree.a_labels[best_node]
+
+    idx = nothing
+    if s == nothing
+        if true
+        # if length(tree.root_samples) <= tree.n[best_node]
+            s = rand(pomcp.solver.rng, tree.root_belief)
+            # seed = convert(UInt32, length(tree.root_samples) + 1
+            seed = rand(UInt32)
+            sw = state_weight(tree.root_belief, s)
+            push!(tree.root_samples, (s, seed))
+            push!(tree.root_probs, sw)
+            push!(tree.root_returns, -Inf)
+            wp = 1.0
+            idx = length(tree.root_samples)
+        else
+            idx, s, seed, wp = is_sample_root(tree)
+        end
+        # Random.seed!(pomcp.solver.rng, seed)
+    end
+
+    if POMDPs.isterminal(pomcp.problem, s)
+        return 0.0, nothing
+    end
 
     new_node = false
     if tree.n_a_children[best_node] <= sol.k_observation*(tree.n[best_node]^sol.alpha_observation)
@@ -89,7 +111,7 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S,
         push_weighted!(tree.sr_beliefs[hao], pomcp.node_sr_belief_updater, s, sp, r)
         sp, r = rand(sol.rng, tree.sr_beliefs[hao])
 
-        R = r + POMDPs.discount(pomcp.problem)*simulate(pomcp, POWTreeObsNode(tree, hao), sp, w, d-1)
+        R = r + POMDPs.discount(pomcp.problem)*simulate(pomcp, POWTreeObsNode(tree, hao), sp, w, d-1)[1]
     end
 
     tree.n[best_node] += 1
@@ -100,5 +122,5 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S,
         # tree.v[best_node] += w*(R-tree.v[best_node])/tree.w[best_node]
     end
 
-    return R
+    return R, idx
 end
