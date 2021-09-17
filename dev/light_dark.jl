@@ -6,7 +6,6 @@ using POMDPModels: LDNormalStateDist, LightDark1DState
 using POMDPSimulators
 using ParticleFilters
 using POMCPOW
-# using MCVI
 using Random
 using Statistics
 

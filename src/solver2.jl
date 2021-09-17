@@ -48,10 +48,9 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::Union
 
     idx = nothing
     if s == nothing
-        if true
-        # if length(tree.root_samples) <= tree.n[best_node]
+        # if true
+        if length(tree.root_samples) <= tree.n[best_node]
             s = rand(pomcp.solver.rng, tree.root_belief)
-            # seed = convert(UInt32, length(tree.root_samples) + 1
             seed = rand(UInt32)
             sw = state_weight(tree.root_belief, s)
             push!(tree.root_samples, (s, seed))
@@ -62,7 +61,7 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::Union
         else
             idx, s, seed, wp = is_sample_root(tree)
         end
-        # Random.seed!(pomcp.solver.rng, seed)
+        Random.seed!(pomcp.solver.rng, seed)
     end
 
     if POMDPs.isterminal(pomcp.problem, s)

@@ -4,25 +4,24 @@ using POMDPs
 using POMDPModels
 using POMDPModels: LDNormalStateDist, LightDark1DState
 using POMDPSimulators
+using POMDPModelTools
 using ParticleFilters
-# using POMCPOW
+using POMCPOW
 using QMDP
 using Statistics
 
 using ProfileView
 
 pomdp = TMaze()
-ds0 = POMDPs.initialstate_distribution(pomdp)
-s0 = rand(ds0)
+b0 = POMDPs.initialstate_distribution(pomdp)
+s0 = rand(b0)
 
-# up = BootstrapFilter(pomdp, 1000)
-# b0 = LDNormalStateDist(s0.y, 5.0)
+up = BootstrapFilter(pomdp, 1000)
 
-# function POMCPOW.state_weight(d::LDNormalStateDist, s::LightDark1DState)
-#     dist = POMDPModels.Normal(d.mean, d.std)
-#     return pdf(dist, s.y)
-# end
-#
+function POMCPOW.state_weight(d::POMDPModelTools.SparseCat, s::TMazeState)
+    return pdf(dist, s.y)
+end
+
 # solver = POMCPOWSolver(tree_queries=1000,
 #                         max_samples=100,
 #                         check_repeat_obs=true,
@@ -31,6 +30,8 @@ s0 = rand(ds0)
 #                         alpha_observation=0.1
 #                         )
 # planner = POMDPs.solve(solver, pomdp)
+
+# QMDP.isterminal(m::TMaze, s::TMazeState) = POMDPs.isterminal(m, s)
 
 qmdp = QMDPSolver(max_iterations=20,
                     belres=1e-3,
