@@ -29,7 +29,7 @@ function estimate_value(p::LightDark1D, s::LightDark1DState, h, steps)
     return 0.0
 end
 
-solver = POMCPOWSolver(tree_queries=1000,
+solver = POMCPOWSolver(tree_queries=500,
                         check_repeat_obs=true,
                         check_repeat_act=true,
                         estimate_value=estimate_value,
