@@ -397,6 +397,11 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
+[[RecipesBase]]
+git-tree-sha1 = "44a75aa7a527910ee3d1751d1f0e4148698add9e"
+uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+version = "1.1.2"
+
 [[Reexport]]
 git-tree-sha1 = "45e428421666073eab6f2da5c9d310d99bb12f9b"
 uuid = "189a3867-3050-52da-a836-e630ba90ab69"
@@ -475,6 +480,12 @@ deps = ["ChainRulesCore", "IrrationalConstants", "LogExpFunctions", "Reexport", 
 git-tree-sha1 = "46d7ccc7104860c38b11966dd1f72ff042f382e4"
 uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "0.9.10"
+
+[[SubHunt]]
+deps = ["Distributions", "LinearAlgebra", "POMDPModelTools", "POMDPs", "Parameters", "ParticleFilters", "Printf", "Random", "RecipesBase", "StaticArrays"]
+path = "/home/jmern91/.julia/dev/SubHunt"
+uuid = "a88f5ffd-3e7a-53ba-860a-e6b731d22c85"
+version = "0.0.0"
 
 [[SuiteSparse]]
 deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
