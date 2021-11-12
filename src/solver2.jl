@@ -5,10 +5,6 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d)
 
     sol = pomcp.solver
 
-    if POMDPs.isterminal(pomcp.problem, s) || d <= 0
-        return 0.0
-    end
-
     if sol.enable_action_pw
         total_n = tree.total_n[h]
         if length(tree.tried[h]) <= sol.k_action*total_n^sol.alpha_action
@@ -58,9 +54,10 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d)
             push!(tree.sr_beliefs,
                   init_node_sr_belief(pomcp.node_sr_belief_updater,
                                       pomcp.problem, s, a, sp, o, r))
-            push!(tree.total_n, 0)
+            push!(tree.total_n, 1)
             push!(tree.tried, Int[])
             push!(tree.o_labels, o)
+			push!(tree.v, 0.0)
 
             if sol.check_repeat_obs
                 tree.a_child_lookup[(best_node, o)] = hao
@@ -79,23 +76,49 @@ function simulate(pomcp::POMCPOWPlanner, h_node::POWTreeObsNode{B,A,O}, s::S, d)
     end
 
     if new_node
-        R = r + POMDPs.discount(pomcp.problem)*estimate_value(pomcp.solved_estimate, pomcp.problem, sp, POWTreeObsNode(tree, hao), d-1)
+		if POMDPs.isterminal(pomcp.problem, sp) || d-1 <= 0
+	        vp = 0.0
+		else
+			vp = estimate_value(pomcp.solved_estimate, pomcp.problem, sp, POWTreeObsNode(tree, hao), d-1)
+		end
+        # R = r + POMDPs.discount(pomcp.problem)*vp
+		tree.v[hao] = vp
     else
         pair = rand(sol.rng, tree.generated[best_node])
         o = pair.first
         hao = pair.second
         push_weighted!(tree.sr_beliefs[hao], pomcp.node_sr_belief_updater, s, sp, r)
         sp, r = rand(sol.rng, tree.sr_beliefs[hao])
-
-        R = r + POMDPs.discount(pomcp.problem)*simulate(pomcp, POWTreeObsNode(tree, hao), sp, d-1)
+		if POMDPs.isterminal(pomcp.problem, sp) || d-1 <= 0
+			tree.total_n[hao] += 1
+		else
+			simulate(pomcp, POWTreeObsNode(tree, hao), sp, d-1)
+	    end
+        # R = r + POMDPs.discount(pomcp.problem)*vp
     end
 
     tree.n[best_node] += 1
     tree.total_n[h] += 1
-    if tree.v[best_node] != -Inf
-        tree.v[best_node] += (R-tree.v[best_node])/tree.n[best_node]
-    end
 
-    return R
+    # if tree.r[best_node] != -Inf
+	tree.r[best_node] += (r-tree.r[best_node])/tree.n[best_node]
+    # end
+	child_a = unique([pair.second for pair in tree.generated[best_node]])
+	q = 0.0
+	for hao in child_a
+		q += tree.v[hao]*tree.total_n[hao]
+	end
+	tree.q[best_node] = POMDPs.discount(pomcp.problem)*q/tree.n[best_node]
+	tree.q[best_node] += tree.r[best_node]
+
+	child_h = tree.tried[h]
+	v = -Inf
+	for ha in child_h
+		# v += tree.q[ha]
+		if tree.q[ha] > v
+			v = tree.q[ha]
+		end
+	end
+	tree.v[h] = v
+    # return R
 end
-

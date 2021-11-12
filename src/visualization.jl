@@ -26,8 +26,8 @@ function D3Trees.D3Tree(t::POMCPOWTree; title="POMCPOW Tree", kwargs...)
     tt = fill("", len)
     link_style = fill("", len)
     style = fill("", len)
-    min_V = minimum(t.v)
-    max_V = maximum(t.v)
+    min_V = minimum(t.q)
+    max_V = maximum(t.q)
     for b in 1:lenb
         children[b] = t.tried[b] .+ lenb
         text[b] = @sprintf("""
@@ -40,6 +40,7 @@ function D3Trees.D3Tree(t::POMCPOWTree; title="POMCPOW Tree", kwargs...)
         tt[b] = """
                 o: $(b==1 ? "<root>" : node_tag(t.o_labels[b]))
                 N: $(t.total_n[b])
+                V: $(t.v[b])
                 $(length(t.tried[b])) children
                 """
         link_width = max(1.0, 20.0*sqrt(t.total_n[b]/t.total_n[1]))
@@ -50,16 +51,16 @@ function D3Trees.D3Tree(t::POMCPOWTree; title="POMCPOW Tree", kwargs...)
         text[ba+lenb] = @sprintf("""
                                  a: %s
                                  N: %-7d V: %-10.3g""",
-                                 node_tag(t.a_labels[ba]), t.n[ba], t.v[ba])
+                                 node_tag(t.a_labels[ba]), t.n[ba], t.q[ba])
         tt[ba+lenb] = """
                       a: $(tooltip_tag(t.a_labels[ba]))
                       N: $(t.n[ba])
-                      V: $(t.v[ba])
+                      V: $(t.q[ba])
                       $(length(t.generated[ba])) children
                       """
         link_width = max(1.0, 20.0*sqrt(t.n[ba]/t.total_n[1]))
         link_style[ba+lenb] = "stroke-width:$link_width"
-        rel_V = (t.v[ba]-min_V)/(max_V-min_V)
+        rel_V = (t.q[ba]-min_V)/(max_V-min_V)
         if isnan(rel_V)
             color = colorant"gray"
         else

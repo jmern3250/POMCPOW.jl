@@ -49,7 +49,7 @@ function POMDPPolicies.actionvalues(p::POMCPOWPlanner, b)
     values = Vector{Union{Float64,Missing}}(missing, length(actions(p.problem)))
     for anode in tree.tried[1]
         a = tree.a_labels[anode]
-        values[actionindex(p.problem, a)] = tree.v[anode]
+        values[actionindex(p.problem, a)] = tree.q[anode]
     end
     return values
 end
